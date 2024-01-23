@@ -1,0 +1,52 @@
+#Jalankan command di terminal
+sudo apt update
+sudo apt upgrade -y
+sudo reboot
+
+mkdir Project
+cd Project
+git clone https://github.com/alfiankensei/cuavc.git
+cd cuavc
+
+sudo apt install mariadb-server -y
+sudo mysql_secure_installation
+1. enter password : @Jmt02022!
+2. unix socket : n
+3. change password : n
+4. remove anon : y
+5. dis root login : n
+6. remove test : n
+7. reload priv : y
+exit
+sudo mysql -u root -p
+CREATE USER 'root'@'127.0.0.1' IDENTIFIED BY '@Jmt02022!';
+CREATE USER 'root'@'%' IDENTIFIED BY '@Jmt02022!';
+CREATE USER 'avc'@'127.0.0.1' IDENTIFIED BY 'jmt02022!';
+CREATE USER 'avc'@'%' IDENTIFIED BY 'jmt02022!';
+CREATE USER 'avc'@'localhost' IDENTIFIED BY 'jmt02022!';
+
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'127.0.0.1' WITH GRANT OPTION;
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
+GRANT ALL PRIVILEGES ON *.* TO 'avc'@'127.0.0.1' WITH GRANT OPTION;
+GRANT ALL PRIVILEGES ON *.* TO 'avc'@'localhost' WITH GRANT OPTION;
+GRANT ALL PRIVILEGES ON *.* TO 'avc'@'%' WITH GRANT OPTION;
+
+FLUSH PRIVILEGES;
+
+CREATE DATABASE db_avc;
+USE db_avc;
+source /home/avc/Project/cuavc/db_avc.sql
+exit
+
+sudo nano /etc/mysql/mariadb.conf.d/50-server.cnf
+#ganti bind-address
+bind-address = 0.0.0.0
+pip install -r requirements.txt --break-system-packages
+
+chmod +x autorunavc.sh
+crontab -e
+#tambahkan command ini
+@reboot /home/avc/Project/cuavc/autorunavc.sh
+#exit save
+
+sudo reboot
