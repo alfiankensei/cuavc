@@ -20,7 +20,7 @@ CMD_PING = 1
 CMD_PRESENT = 2
 
 conn = pymysql.connect( 
-    host='172.20.5.132', 
+    host='127.0.0.1', 
     user='avc',  
     password = "jmt02022!", 
     db='db_avc', 
