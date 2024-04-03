@@ -8,6 +8,8 @@ cd Project
 git clone https://github.com/alfiankensei/cuavc.git
 cd cuavc
 
+#edit main.py sesuaikan variable nogardu sesuai gardu nya
+
 sudo apt install mariadb-server -y
 sudo mysql_secure_installation
 1. enter password : @Jmt02022!
@@ -43,10 +45,12 @@ sudo nano /etc/mysql/mariadb.conf.d/50-server.cnf
 bind-address = 0.0.0.0
 pip install -r requirements.txt --break-system-packages
 
-chmod +x autorunavc.sh
+chmod +x *.sh
 crontab -e
 #tambahkan command ini
 @reboot /home/avc/Project/cuavc/autorunavc.sh
+*/3 * * * * /home/avc/Project/cuavc/autoruncheckapi.sh
+0 0 * * * /home/avc/Project/cuavc/delete_foto_avc.sh
 #exit save
 
 sudo reboot

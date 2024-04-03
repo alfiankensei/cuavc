@@ -20,6 +20,6 @@ do
         sleep 10
     fi #track1.py
 
-    sleep 10
+    sleep 60
 done
 exit

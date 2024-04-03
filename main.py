@@ -47,7 +47,7 @@ class Update_to_db(BaseModel):
     waktu: str
 
 #declare variable
-nogardu = 3
+nogardu = 14
 
 # COMMAND LIST
 CMD_STARTUP = 0
@@ -89,7 +89,10 @@ def insertcmd(cmd):
         conn.commit()
     except Exception as e:
         write_log(f"Insert command error {str(e)}")
-        exit()
+        write_log("Connection DB Error | Reload Server")
+        f = open("SERVER", "w")
+        f.write(str(datetime.now()))
+        f.close()
 
 def insertpresent(idgardu,golongan,waktu,imgpath): 
     try :
@@ -109,7 +112,10 @@ def insertpresent(idgardu,golongan,waktu,imgpath):
         return 0
     except Exception as e:
         write_log(f"Insert present error {str(e)}")
-        exit()
+        write_log("Connection DB Error | Reload Server")
+        f = open("SERVER", "w")
+        f.write(str(datetime.now()))
+        f.close()
         return 0
 
 def updatepresent(nama_image, path_cam1, path_cam2, path_cam3, path_cam4, waktu) : 
@@ -120,7 +126,10 @@ def updatepresent(nama_image, path_cam1, path_cam2, path_cam3, path_cam4, waktu)
         conn.commit()
     except Exception as e:
         write_log(f"update present error {str(e)}")
-        exit()
+        write_log("Connection DB Error | Reload Server")
+        f = open("SERVER", "w")
+        f.write(str(datetime.now()))
+        f.close()
 
 
 @app.post("/avc/present/")
@@ -129,29 +138,7 @@ async def avc_presents(idgardu: str, golongan: str, waktu: str , imgpath: str):
         insertcmd(CMD_PRESENT)
         idavc = insertpresent(idgardu,golongan,waktu,imgpath)
         if idavc == 0 :
-            exit()
-        write_log(f'Post Data {idgardu} | {golongan} | {waktu} | {imgpath}')
-        if not golongan.isnumeric() :
-            return {"status":401,"msg":"Golongan (" + golongan + ") is Not Valid"}
-        if nogardu != int(idgardu) :
-            return {"status":402,"msg":"Gardu (" + idgardu + ") is Not Match"}
-
-        # f = open("AVC", "w")
-        # f.write(f'{idavc}|{golongan}')
-        # f.close()
-
-        return {"status":200,"msg":"OK","golongan": golongan}
-    except Exception as e:
-        write_log(f"api avc present error {str(e)}")
-        return {"status":501,"msg":f"Server Error {str(e)}"}
-
-@app.post("/avc/present2/")
-async def avc_presents2(idgardu: str, golongan: str, waktu: str , imgpath: str):
-    try :
-        insertcmd(CMD_PRESENT)
-        idavc = insertpresent(idgardu,golongan,waktu,imgpath)
-        if idavc == 0 :
-            exit()
+            sys.exit()
         write_log(f'Post Data {idgardu} | {golongan} | {waktu} | {imgpath}')
         if not golongan.isnumeric() :
             return {"status":401,"msg":"Golongan (" + golongan + ") is Not Valid"}

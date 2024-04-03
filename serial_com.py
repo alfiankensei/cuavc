@@ -141,8 +141,6 @@ def sendGolAvc(golavc, idavc) :
     dataAVC = CMD_HEADER + CMD_CUPRESENT + sericu.to_bytes(4, byteorder='little') + seriavc.to_bytes(4, byteorder='little') + byteavc
     crc32 = zlib.crc32(dataAVC)
     dataAVC = dataAVC + crc32.to_bytes(4, byteorder='little')
-
-    write_log(f"RAW DATA Present : {dataAVC.hex()} | Seri CU/AVC {seriavc}")
     ser.flushOutput()
     write_log(f"Send Data AVC Golongan {golavc}")
     ser.write(dataAVC)
@@ -213,6 +211,9 @@ def insertupdatepresent(idavc, stattrx, golavc, goltrx, entdatetime, shift, resi
         idavc = 0
     query = f"INSERT INTO store_avc (id_present, status, golongan_avc, golongan_gto, waktu_transaksi, shift, resi, kspt, pultol, rupiah, no_kartu, compare_avc) VALUES ('{idavc}', '{stattrx}', '{golavc}', '{goltrx}', '{entdatetime}', '{shift}', '{resi}', '{kspt}', '{pultol}', '{rupiah}', '{nokartu}', '0')"
     return query
+    # write_log(query)
+    # cur.execute(query) 
+    # conn.commit()
 
 def mysqlinsert(query) :
     write_log(query)
@@ -225,7 +226,7 @@ ser = serial.Serial(
         parity=serial.PARITY_NONE,
         stopbits=serial.STOPBITS_ONE,
         bytesize=serial.EIGHTBITS,
-        timeout=0.5
+        timeout=0.20
 )
 
 ser.flushInput()
@@ -234,8 +235,6 @@ ser.flushOutput()
 def main() :
     global ispresent
     countstore = 0
-    golavc = 0
-    idavc = 0
 
     gto = GTO(0, 0, 0, 0, 0, 0)
     trans = TRANS(0, 0, 0, 0, 0, '', '', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', 0, '')
@@ -243,17 +242,13 @@ def main() :
     ser.open()
     write_log(f"Serial Status Open : {ser.isOpen()}")
 
-    waktuserial = waktuserver = datetime.now()
-    getGTOStatus()
+    waktuserial = datetime.now()
     while ser.isOpen() :
         f = open("AVC", "r")
         isi = f.read()
         f.close()
         
         if len(isi) > 0 and isi[0] != '-' :
-            waktuserver = datetime.now()
-            # if idavc != 0 :
-            #     sendGolCancel(golavc, idavc)
             x = isi.split('|')
             golavc = int(x[1])
             idavc = int(x[0])
@@ -322,9 +317,7 @@ def main() :
             elif readCMD == CMD_GTOSTORE :
                 write_log('GTO STORE')
                 dataSer = ser.read(LCMD_GTOSTORE)
-                rawtxt = readHeader + readCMD + dataSer
-                write_log(f"RAW Serial Tanpa CRC | {rawtxt.hex()}")
-                write_log(f"RAW Data Seri CU | {dataSer[0:4].hex()}")
+
                 trans.nosericu = int.from_bytes(dataSer[0:4], byteorder='little')
                 trans.stattrx =  int.from_bytes(dataSer[4:5], byteorder='little')
                 trans.golavc = int.from_bytes(dataSer[5:6], byteorder='little')
@@ -358,12 +351,10 @@ def main() :
                 trans.pultol = int.from_bytes(dataSer[34:38], byteorder='little')
                 trans.rupiah = int.from_bytes(dataSer[38:42], byteorder='little')
                 bytedata = dataSer[42:74]
-                write_log(f"RAW nokartu | {bytedata.hex()}")
                 string_data = bytedata.decode('utf-8')
                 trans.nokartu = f'{string_data}'
                 write_log(vars(trans))
                 dataCrc32 = dataSer[74:78]
-                write_log(f"RAW CRC | {dataCrc32.hex()}")
                 if checkCrc32(readHeader, readCMD, dataSer[0:74], dataCrc32) :
                     write_log("CRC VALID")
                     countstore = countstore + 1
@@ -413,9 +404,9 @@ def main() :
         waktunow = datetime.now()
         diffwaktu = waktunow - waktuserial
 
-        # print(diffwaktu)
-        # if abs(diffwaktu.seconds) >= 30 :
-        #     getGTOStatus()
+        print(diffwaktu)
+        if abs(diffwaktu.seconds) >= 150 :
+            getGTOStatus()
 
     write_log(f"Serial Status {ser.isOpen()}")
     sys.exit()
