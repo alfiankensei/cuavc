@@ -17,6 +17,7 @@ import sys
 noresi = 0
 gardu_id = 3
 ispresent = False
+integrator = 1 #1 IOT #2 MIY #3 DB
 
 #GLOBAL COMMAND 
 CMD_HEADER = b'\x69\x6f\x74'
@@ -98,8 +99,6 @@ def write_log(datalog):
     print(f"{waktulog.strftime('%Y-%m-%d %H:%M:%S')} - {datalog}")
 
 def checkCrc32(serHeader, serCMD, serData, serCrc32) :
-    rawCMD = serHeader + serCMD + serData + serCrc32
-    write_log(f"RAW Serial | {rawCMD.hex()}")
     valid = False
     getCrc32 = serHeader + serCMD + serData
     crc32 = zlib.crc32(getCrc32)
@@ -123,18 +122,32 @@ def sendGolAvc(golavc, idavc) :
     global noresi
     global ispresent
 
-    if golavc == 1 or golavc == 0:
-        byteavc = b'\x01'
-    elif golavc == 2 :
-        byteavc = b'\x02'
-    elif golavc == 3 :
-        byteavc = b'\x03'
-    elif golavc == 4 :
-        byteavc = b'\x04'
-    elif golavc == 5 :
-        byteavc = b'\x05'
-    elif golavc == 6 :
-        byteavc = b'\x06'
+    if integrator == 1 :
+        if golavc == 1 or golavc == 0:
+            byteavc = b'\x01'
+        elif golavc == 2 :
+            byteavc = b'\x02'
+        elif golavc == 3 :
+            byteavc = b'\x03'
+        elif golavc == 4 :
+            byteavc = b'\x04'
+        elif golavc == 5 :
+            byteavc = b'\x05'
+        elif golavc == 6 :
+            byteavc = b'\x06'
+    if integrator == 2 :
+        if golavc == 0 :
+            byteavc = b'\x01'
+        elif golavc == 2 :
+            byteavc = b'\x02'
+        elif golavc == 3 :
+            byteavc = b'\x03'
+        elif golavc == 4 :
+            byteavc = b'\x04'
+        elif golavc == 5 :
+            byteavc = b'\x05'
+        elif golavc == 1 :
+            byteavc = b'\x06'
 
     seriavc = sericu = idavc
     
@@ -207,13 +220,16 @@ def insertcmd(cmd):
     conn.commit()
 
 def insertupdatepresent(idavc, stattrx, golavc, goltrx, entdatetime, shift, resi, kspt, pultol, rupiah, nokartu) : 
+    compare = 0
     if str(golavc) == '0' :
         idavc = 0
-    query = f"INSERT INTO store_avc (id_present, status, golongan_avc, golongan_gto, waktu_transaksi, shift, resi, kspt, pultol, rupiah, no_kartu, compare_avc) VALUES ('{idavc}', '{stattrx}', '{golavc}', '{goltrx}', '{entdatetime}', '{shift}', '{resi}', '{kspt}', '{pultol}', '{rupiah}', '{nokartu}', '0')"
+    
+    if golavc == goltrx :
+        compare = 1
+    if golavc == '6' and goltrx == '1' :
+        compare = 1
+    query = f"INSERT INTO store_avc (id_present, status, golongan_avc, golongan_gto, waktu_transaksi, shift, resi, kspt, pultol, rupiah, no_kartu, compare_avc) VALUES ('{idavc}', '{stattrx}', '{golavc}', '{goltrx}', '{entdatetime}', '{shift}', '{resi}', '{kspt}', '{pultol}', '{rupiah}', '{nokartu}', '{compare}')"
     return query
-    # write_log(query)
-    # cur.execute(query) 
-    # conn.commit()
 
 def mysqlinsert(query) :
     write_log(query)
@@ -339,7 +355,7 @@ def main() :
                 extminute = int.from_bytes(dataSer[18:19], byteorder='little')
                 extsecond = int.from_bytes(dataSer[19:20], byteorder='little')
                 trans.extdatetime = f'20{extyear}-{extmonth}-{extday} {exthour}:{extminute}:{extsecond}'
-                # {'nosericu': 1234, 'stattrx': 0, 'golavc': 1, 'goletoll': 1, 'goltrx': 1, 'entday': 31, 'entmonth': 12, 'entyear': 23, 'enthour': 0, 'entminute': 2, 'entsecond': 27, 'extday': 31, 'extmonth': 12, 'extyear': 23, 'exthour': 0, 'extminute': 2, 'extsecond': 27, 'rptday': 30, 'rptmonth': 12, 'rptyear': 23, 'ruas': 11, 'shift': 3, 'perioda': 3, 'resi': 502842, 'kspt': 190720, 'pultol': 152117, 'statdetect': 0, 'adddata': "b'\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00'"} 
+                
                 trans.rptday = int.from_bytes(dataSer[20:21], byteorder='little')
                 trans.rptmonth = int.from_bytes(dataSer[21:22], byteorder='little')
                 trans.rptyear = int.from_bytes(dataSer[22:23], byteorder='little')
@@ -401,13 +417,13 @@ def main() :
                 ser.flushOutput()
                 sendAck(1)
 
-        waktunow = datetime.now()
-        diffwaktu = waktunow - waktuserial
+        # waktunow = datetime.now()
+        # diffwaktu = waktunow - waktuserial
 
-        print(diffwaktu)
-        if abs(diffwaktu.seconds) >= 150 :
-            getGTOStatus()
-
+        # print(diffwaktu)
+        # if abs(diffwaktu.seconds) >= 150 :
+        #     getGTOStatus()
+        
     write_log(f"Serial Status {ser.isOpen()}")
     sys.exit()
     ser.close()
