@@ -47,7 +47,7 @@ class Update_to_db(BaseModel):
     waktu: str
 
 #declare variable
-nogardu = 14
+nogardu = 3
 
 # COMMAND LIST
 CMD_STARTUP = 0
@@ -65,6 +65,13 @@ cur = conn.cursor()
 query = f"INSERT INTO command_log (cmd_id) VALUES ('{CMD_STARTUP}')"
 cur.execute(query) 
 conn.commit() 
+
+def compress_image_jpeg(input_path, output_path):
+    # Membuka gambar
+    with Image.open(input_path) as img:
+        # Menyimpan gambar dengan kualitas yang ditentukan dan optimalisasi
+        img.save(output_path, "JPEG", quality=40, optimize=True)
+        print(f"Gambar telah dikompresi dan disimpan di {output_path}")
 
 def write_log(datalog):
     waktulog = datetime.now()
@@ -89,10 +96,7 @@ def insertcmd(cmd):
         conn.commit()
     except Exception as e:
         write_log(f"Insert command error {str(e)}")
-        write_log("Connection DB Error | Reload Server")
-        f = open("SERVER", "w")
-        f.write(str(datetime.now()))
-        f.close()
+        sys.exit()
 
 def insertpresent(idgardu,golongan,waktu,imgpath): 
     try :
@@ -112,10 +116,7 @@ def insertpresent(idgardu,golongan,waktu,imgpath):
         return 0
     except Exception as e:
         write_log(f"Insert present error {str(e)}")
-        write_log("Connection DB Error | Reload Server")
-        f = open("SERVER", "w")
-        f.write(str(datetime.now()))
-        f.close()
+        sys.exit()
         return 0
 
 def updatepresent(nama_image, path_cam1, path_cam2, path_cam3, path_cam4, waktu) : 
@@ -126,10 +127,7 @@ def updatepresent(nama_image, path_cam1, path_cam2, path_cam3, path_cam4, waktu)
         conn.commit()
     except Exception as e:
         write_log(f"update present error {str(e)}")
-        write_log("Connection DB Error | Reload Server")
-        f = open("SERVER", "w")
-        f.write(str(datetime.now()))
-        f.close()
+        sys.exit()
 
 
 @app.post("/avc/present/")
@@ -210,6 +208,9 @@ async def upload_image(data: ImageData):
             ## Save the image to the folder
             with open(filename, "wb") as image_file:
                 image_file.write(decoded_image)
+                pathin = f"{direktory_gambar}{name_file}"
+                pathout = f"{direktory_gambar}{name_file}"
+                compress_image_jpeg(pathin,pathout)
                 write_log("Successed to Save Pict "+direktory_gambar+" "+name_file)
             
             return {"status": "success", "message": "Image uploaded and processed successfully."}
