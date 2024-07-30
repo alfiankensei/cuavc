@@ -226,7 +226,7 @@ def insertupdatepresent(idavc, stattrx, golavc, goltrx, entdatetime, shift, resi
     
     if golavc == goltrx :
         compare = 1
-    if golavc == '6' and goltrx == '1' :
+    if str(golavc) == '6' and str(goltrx) == '1' :
         compare = 1
     query = f"INSERT INTO store_avc (id_present, status, golongan_avc, golongan_gto, waktu_transaksi, shift, resi, kspt, pultol, rupiah, no_kartu, compare_avc) VALUES ('{idavc}', '{stattrx}', '{golavc}', '{goltrx}', '{entdatetime}', '{shift}', '{resi}', '{kspt}', '{pultol}', '{rupiah}', '{nokartu}', '{compare}')"
     return query
