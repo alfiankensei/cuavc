@@ -17,7 +17,7 @@ import sys
 noresi = 0
 gardu_id = 3
 ispresent = False
-integrator = 1 #1 IOT #2 MIY #3 DB
+integrator = 1 #1 IOT #2 MIY-DB
 
 #GLOBAL COMMAND 
 CMD_HEADER = b'\x69\x6f\x74'
